@@ -1,5 +1,110 @@
-﻿R e a d m e
------------
+﻿v:0.975 (01.191 game compatibility)
 
-In this file you can include any instructions or other comments you want to have injected onto the 
-top of your final script. You can safely delete this file if you do not want any such comments.
+In-Game script by MMaster & Morphologis 
+
+ * Last update: Fixed deprecation warnings (1.191 game compatibility)
+ *  Fixed various timing problems (door unlocked too soon, CT: being applied 10 times sooner)
+ * Previous updates:
+ *  Fixed LCD flicker
+ *  Fixed timing to improve airlock response times
+ *  Updated for 01.185 version of game
+ *  Timer block is not required anymore!
+ *  Sound bug fixed!
+ *  Added option to open the doors even if the pressure is not right (bottom of the Configuration() below)
+ *  CT: option works again (some modded doors report incorrect OpenRatio so you can customize the closing time)
+ * Airlocks can be controlled by using Programmable Block argument
+ * Automatically figure out when doors are fully closed
+ * Improve detection of depressurize/pressurize of airvent
+ * Make colors configurable in script config & made it smarter when pressure changes 
+ * Closing time per door & Airvents in inner and outer groups
+* (look at extra features section below) 
+ 
+Intelligent airlock system. Automatically controls any number of airlocks on ships and stations.  
+ 
+Any number of airlocks using single programmable block & timer 
+Any number of doors per airlock (can be used with Hangar Doors) 
+Any number of airvents per airlock (so you can use it for large airlocks) 
+Automatic pressurization / depressurization 
+Doors automatically closed & locked / unlocked & opened 
+Lights changing colors based on state of airlock 
+Play sound blocks when airlock is pressurized, depressurized or in both cases 
+LCD display support to display state of any number of airlocks on any LCD 
+Unlocks doors without opening when airlock can't be depressurized / pressurized 
+3 button actions support: transfer to inner doors, outer doors or switch between them 
+Airlock can be also controlled by switching 'Depressurize' on airvents 
+  
+NO PROGRAMMING NEEDED. 
+ 
+VIDEO GUIDE BY MORPHOLOGIS: 
+ * https://www.youtube.com/watch?v=viWsqLvqkAM 
+  
+QUICK GUIDE: 
+ * Load script to programmable block, Check code, Remember & Exit
+ * Timer Block is not required anymore!
+
+Setup 3 groups per airlock like this: 
+ Group named "Airlock Control: Airlock name" should contain: 
+ - airvents inside airlock 
+ - lcds that should show this airlock state [optional] 
+  
+ Group named "Airlock Inner: Airlock name" should contain: 
+ - inner doors (opened when airlock is pressurized) 
+ - lights for showing inner door status [optional] 
+ - sound block played when airlock is being pressurized [optional] 
+  
+ Group named "Airlock Outer: Airlock name" should contain: 
+ - outer doors (opened when airlock is depressurized) 
+ - lights for showing outer door status [optional] 
+ - sound block played when airlock is being depressurized [optional] 
+  
+HINT: 
+You can build single sound block and add it to both Inner and Outer group 
+to play sound each time airlock changes state (e.g. hissing sound). 
+ 
+ 
+Setup buttons to switch Depressurize on airvents you added to Control group. 
+ NOTE: this is much less effective than using the control light, but it works 
+ 
+ OR 
+
+Setup buttons to Run Programmable block with argument (without quotes!):
+ "Airlock name in" - transfer to inner doors (pressurize)
+ "Airlock name out" - transfer to outer doors (depressurize) 
+ "Airlock name toggle" - switch between inner doors / outer doors
+ 
+ * Done. 
+ 
+EXTRA FEATURES 
+ Change color of lights in script LIGHT COLOR SETTINGS right below this description.  
+  
+ Place airvent behind inner doors to Airlock Inner group and/or airvent outside of outer doors to Airlock Outer group  
+ to let airlock automatically figure out what should be the pressure when opening inner and/or outer doors. 
+ 
+ Add closing time to doors name to make sure doors are closed before locking them by adding "CT:seconds": 
+ * if your doors are named "Hangar Door 3" rename them to "Hangar Door 3 CT:10" to set closing time to 10 seconds 
+ * if your doors are named "Door 3" rename them to "Door 3 CT:5" to set closing time to 5 seconds 
+
+ Tell the script to open the doors after some time even if pressure is not right in the airlock:
+ * change line "MMConfig.OPEN_ANYWAY = false;" in Configuration() section at the beginning of the script 
+ * to "MMConfig.OPEN_ANYWAY = true;" (without quotes)
+ 
+RECOMMENDED sound pack made by Tartaross 
+Tartaross Inc. A.I. Soundpack #2: Community Wishlist 
+http://steamcommunity.com/sharedfiles/filedetails/?id=431231192 
+ 
+VERY SPECIAL THANKS 
+Morphologis for this idea, his help with debugging this script and for his support of community & awesome videos! 
+Make sure to check out his YouTube channel: 
+https://www.youtube.com/user/Morphologis 
+ 
+Also thanks to Direwolf20 for fix to depressurization on load issue.
+
+Also look at Deep Space Nation reddit page: 
+https://www.reddit.com/r/DeepSpaceNation 
+ 
+ 
+Watch MMaster's Steam group: http://steamcommunity.com/groups/mmnews 
+Youtube Channel: https://www.youtube.com/user/MattsPlayCorner1080p 
+Twitter: https://twitter.com/MattsPlayCorner 
+and Facebook: https://www.facebook.com/MattsPlayCorner1080p 
+for more crazy stuff in the future :) 
