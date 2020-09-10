@@ -22,46 +22,30 @@ namespace IngameScript
 	partial class Program : MyGridProgram
 	{
 		#region mdk preserve
-		void Configuration()
+		public void Configuration()
 		{
-			/* LIGHT COLOR SETTINGS 
-			 *  
-			 * 1. number is red color from 0.0 (black) to 1.0 (red) 
-			 * 2. number is green color from 0.0 (black) to 1.0 (green) 
-			 * 3. number is blue color from 0.0 (black) to 1.0 (blue) 
-			 *  
-			 * Examples: 
-			 *   Color(0.5f, 0.0f, 0.0f) is dark red 
-			 *   Color(0.0f, 0.5f, 0.0f) is dark green 
-			 *   Color(1.0f, 1.0f, 1.0f) is white color 
-			 *   Color(1.0f, 1.0f, 0.0f) is yellow 
-			 *   Color(1.0f, 0.5f, 0.0f) is orange 
-			 *   Color(0.0f, 1.0f, 1.0f) is cyan 
-			 *  
-			 * change only the numbers (leave f at the end of each number) */
-
-			// color when doors are locked 
-			MMConfig.LOCK_COLOR = new Color(1.0f, 0.0f, 0.0f);
-			// color when pressure is wrong but doors are unlocked 
-			MMConfig.WARN_COLOR = new Color(1.0f, 0.5f, 0.0f);
-			// color when doors are open 
-			MMConfig.OPEN_COLOR = new Color(0.0f, 1.0f, 0.0f);
+			// Lignting color when doors are locked 
+			Config.LOCK_COLOR = new Color(1.0f, 0.0f, 0.0f);
+			// Lighting color when pressure is wrong but doors are unlocked 
+			Config.WARN_COLOR = new Color(1.0f, 0.5f, 0.0f);
+			// Lighting color when doors are open 
+			Config.OPEN_COLOR = new Color(0.0f, 1.0f, 0.0f);
 
 			// Tags must be surrounded by square brackets, e.g. [AI] for Airlock Inner
 			// Group name must start with this to be considered by this script (case insensitive)
-			MMConfig.GROUP_TAG = "a";
+			Config.GROUP_TAG = "A";
 
-			MMConfig.INNER_TAG = "i";
-			MMConfig.OUTER_TAG = "o";
-			MMConfig.CONTROL_TAG = "c";
+			Config.INNER_TAG = "I";
+			Config.OUTER_TAG = "E";
+			Config.CONTROL_TAG = "C";
 
 			// Should we completely open the doors even if pressure is not ok?
-			MMConfig.OPEN_ANYWAY = false;
+			Config.OPEN_ANYWAY = false;
 		}
 		#endregion
 
 		// Enable debug to antenna or LCD marked with [DEBUG] 
-		public static bool EnableDebug = false;
+		//public static bool EnableDebug = false;
 
 		public Program()
 		{
@@ -73,7 +57,7 @@ namespace IngameScript
 			Configuration();
 
 			// Init MMAPI and debug panels marked with [DEBUG] 
-			MM.Init(GridTerminalSystem, EnableDebug, this);
+			DR.Init(GridTerminalSystem, EnableDebug, this);
 
 			AirlockControlProgram prog = new AirlockControlProgram();
 			prog.Run(argument);

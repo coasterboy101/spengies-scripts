@@ -21,6 +21,8 @@ namespace IngameScript
 {
 	partial class Program : MyGridProgram
 	{
+		public const string O2_VALVE
+
 		IMyShipConnector valve;
 		List<IMyGasTank> tanks;
 

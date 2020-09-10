@@ -348,5 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-/SpengiesScripts/O2Manager/MDK/MDK.paths.props
-/SpengiesScripts/AirlockController/MDK/MDK.paths.props
+
+# Per-Machine MDK config files
+**/MDK.paths.props
+**/MDK.paths.props
