@@ -14,6 +14,7 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game;
 using VRageMath;
+using System.Runtime.CompilerServices;
 
 namespace IngameScript
 {
@@ -21,7 +22,36 @@ namespace IngameScript
 	{
 		public class RAPI
 		{
-			
+			public MyCommandLine CommandLine { get; set; }
+			public MyIni Ini { get; set; }
+
+			private Program program = null;
+			private IMyTextSurface progammingBlockLcd = null;
+
+			private bool debug = false;
+
+			public RAPI(Program program, bool debug = false)
+			{
+				CommandLine = new MyCommandLine();
+				Ini = new MyIni();
+
+				this.program = program;
+				this.debug = debug;
+
+				if (this.program.Me.SurfaceCount > 0)
+					progammingBlockLcd = this.program.Me.GetSurface(0);
+			}
+
+			public void Debug(string message, bool append = true)
+			{
+				if (!debug)
+					return;
+
+				if (progammingBlockLcd != null)
+					progammingBlockLcd.WriteText(message, append);
+
+				program.Echo(message);
+			}
 		}
 	}
 }

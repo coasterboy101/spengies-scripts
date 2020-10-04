@@ -1,0 +1,7 @@
+﻿Connector CustomData:
+[Gas Storage]
+groupName=*group*
+fillPercent=*20*
+
+Tank CustomData:
+[*group*]

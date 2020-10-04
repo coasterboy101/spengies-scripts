@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirlockController", "AirlockController\AirlockController.csproj", "{E0A36DC6-08C8-4000-8A4E-A43EA0E81B8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2Manager", "O2Manager\O2Manager.csproj", "{284C1C1D-745F-4C47-B8CD-8C2E48ED2EB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2H2Manager", "O2H2Manager\O2H2Manager.csproj", "{284C1C1D-745F-4C47-B8CD-8C2E48ED2EB7}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RAPI", "..\SpengiesUtils\RAPI\RAPI.shproj", "{61EBA249-19F3-48B6-A25B-A4CEE90168BA}"
 EndProject
