@@ -24,33 +24,33 @@ namespace IngameScript
 		{
 			public MyCommandLine CommandLine { get; set; }
 			public MyIni Ini { get; set; }
+			public Program Program { get; private set; }
 
-			private Program program = null;
-			private IMyTextSurface progammingBlockLcd = null;
+			private IMyTextSurface _progammingBlockLcd = null;
 
-			private bool debug = false;
+			private bool _debug = false;
 
 			public RAPI(Program program, bool debug = false)
 			{
 				CommandLine = new MyCommandLine();
 				Ini = new MyIni();
+				Program = program;
 
-				this.program = program;
-				this.debug = debug;
+				_debug = debug;
 
-				if (this.program.Me.SurfaceCount > 0)
-					progammingBlockLcd = this.program.Me.GetSurface(0);
+				if (Program.Me.SurfaceCount > 0)
+					_progammingBlockLcd = Program.Me.GetSurface(0);
 			}
 
 			public void Debug(string message, bool append = true)
 			{
-				if (!debug)
+				if (!_debug)
 					return;
 
-				if (progammingBlockLcd != null)
-					progammingBlockLcd.WriteText(message, append);
+				if (_progammingBlockLcd != null)
+					_progammingBlockLcd.WriteText(message, append);
 
-				program.Echo(message);
+				Program.Echo(message);
 			}
 		}
 	}

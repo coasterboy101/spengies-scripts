@@ -25,29 +25,31 @@ namespace IngameScript
 		private const string GROUP_NAME_KEY = "groupName";
 		private const string FILL_PERCENT_KEY = "fillPercent";
 
-		private RAPI api;
+		private RAPI _api;
+
+		private List<GasStorageArray> _storageArrays;
 
 		public Program()
 		{
-			api = new RAPI(this, false);
-			Runtime.UpdateFrequency |= UpdateFrequency.Update10;
+			_api = new RAPI(this);
+			Runtime.UpdateFrequency = UpdateFrequency.Update10;
+
+			_storageArrays = new List<GasStorageArray>();
+
+			List<IMyShipConnector> valves = new List<IMyShipConnector>();
+			GridTerminalSystem.GetBlocksOfType(valves, valve => MyIni.HasSection(valve.CustomData, GROUP_SECTION_NAME));
+
+			foreach (IMyShipConnector valve in valves)
+			{
+				_storageArrays.Add(new GasStorageArray(_api, valve));
+			}
 		}
 
 		public void Main(string argument, UpdateType updateSource)
 		{
-			List<IMyShipConnector> valves = new List<IMyShipConnector>();
-			GridTerminalSystem.GetBlocksOfType(valves, valve => MyIni.HasSection(valve.CustomData, GROUP_SECTION_NAME));
-			foreach (IMyShipConnector valve in valves)
+			foreach (GasStorageArray storageArray in _storageArrays)
 			{
-				api.Ini.TryParse(valve.CustomData);
-
-				string key = api.Ini.Get(GROUP_SECTION_NAME, GROUP_NAME_KEY).ToString();
-				int targetFill = api.Ini.Get(GROUP_SECTION_NAME, FILL_PERCENT_KEY).ToInt32(20);
-
-				List<IMyGasTank> tanks = new List<IMyGasTank>();
-				GridTerminalSystem.GetBlocksOfType(tanks, tank => MyIni.HasSection(tank.CustomData, key));
-
-				new GasStorage(key, valve, tanks, targetFill).Process();
+				storageArray.Process();
 			}
 		}
 	}
