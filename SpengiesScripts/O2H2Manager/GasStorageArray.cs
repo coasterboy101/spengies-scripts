@@ -25,50 +25,58 @@ namespace IngameScript
 		{
 			public string Key { get; private set; }
 			public int TargetFill { get; private set; }
+
 			public IMyShipConnector Valve { get; private set; }
 			public List<IMyGasTank> Tanks { get; private set; }
 
-			private RAPI _api;
+			private RAPI api;
 
 			public GasStorageArray(RAPI api, IMyShipConnector valve)
 			{
-				_api = api;
+				this.api = api;
 
 				Valve = valve;
-				_api.Ini.TryParse(Valve.CustomData);
+				this.api.Ini.TryParse(Valve.CustomData);
 
-				Key = _api.Ini.Get(GROUP_SECTION_NAME, GROUP_NAME_KEY).ToString();
-				TargetFill = _api.Ini.Get(GROUP_SECTION_NAME, FILL_PERCENT_KEY).ToInt32();
+				Key = this.api.Ini.Get(GROUP_SECTION_NAME, GROUP_ID_KEY).ToString();
+				TargetFill = this.api.Ini.Get(GROUP_SECTION_NAME, FILL_PERCENT_KEY).ToInt32();
 
 				Tanks = new List<IMyGasTank>();
-				_api.Program.GridTerminalSystem.GetBlocksOfType(Tanks, tank => MyIni.HasSection(tank.CustomData, Key));
+				this.api.Program.GridTerminalSystem.GetBlocksOfType(Tanks, tank => MyIni.HasSection(tank.CustomData, Key));
 			}
 
 			public void Process()
 			{
-				bool tanksFilled = !Tanks.Any(tank => tank.FilledRatio * 100 <= TargetFill);
-
-				if (!tanksFilled)
+				try
 				{
-					foreach (IMyGasTank tank in Tanks)
-					{
-						bool tankFilled = tank.FilledRatio * 100 > TargetFill;
-						if (tank.Enabled == tankFilled)
-							tank.Enabled = !tankFilled;
-					}
+					bool tanksFilled = !Tanks.Any(tank => tank.FilledRatio * 100 <= TargetFill);
 
-					if (Valve.Status == MyShipConnectorStatus.Connectable)
-						Valve.Connect();
+					if (!tanksFilled)
+					{
+						foreach (IMyGasTank tank in Tanks)
+						{
+							bool tankFilled = tank.FilledRatio * 100 > TargetFill;
+							if (tank.Enabled == tankFilled)
+								tank.Enabled = !tankFilled;
+						}
+
+						if (Valve.Status == MyShipConnectorStatus.Connectable)
+							Valve.Connect();
+					}
+					else if (tanksFilled && Valve.Status == MyShipConnectorStatus.Connected)
+					{
+						Valve.Disconnect();
+
+						foreach (IMyGasTank tank in Tanks)
+						{
+							if (!tank.Enabled)
+								tank.Enabled = true;
+						}
+					}
 				}
-				else if (tanksFilled && Valve.Status == MyShipConnectorStatus.Connected)
+				catch
 				{
-					Valve.Disconnect();
-
-					foreach (IMyGasTank tank in Tanks)
-					{
-						if (!tank.Enabled)
-							tank.Enabled = true;
-					}
+					return;
 				}
 			}
 		}

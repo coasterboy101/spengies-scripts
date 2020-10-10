@@ -21,33 +21,33 @@ namespace IngameScript
 {
 	partial class Program : MyGridProgram
 	{
-		private const string GROUP_SECTION_NAME = "Gas Storage";
-		private const string GROUP_NAME_KEY = "groupName";
+		private const string GROUP_SECTION_NAME = "Gas Storage Array";
+		private const string GROUP_ID_KEY = "groupID";
 		private const string FILL_PERCENT_KEY = "fillPercent";
 
-		private RAPI _api;
+		private RAPI api;
 
-		private List<GasStorageArray> _storageArrays;
+		private List<GasStorageArray> storageArrays;
 
 		public Program()
 		{
-			_api = new RAPI(this);
+			api = new RAPI(this);
 			Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
-			_storageArrays = new List<GasStorageArray>();
+			storageArrays = new List<GasStorageArray>();
 
 			List<IMyShipConnector> valves = new List<IMyShipConnector>();
 			GridTerminalSystem.GetBlocksOfType(valves, valve => MyIni.HasSection(valve.CustomData, GROUP_SECTION_NAME));
 
 			foreach (IMyShipConnector valve in valves)
 			{
-				_storageArrays.Add(new GasStorageArray(_api, valve));
+				storageArrays.Add(new GasStorageArray(api, valve));
 			}
 		}
 
 		public void Main(string argument, UpdateType updateSource)
 		{
-			foreach (GasStorageArray storageArray in _storageArrays)
+			foreach (GasStorageArray storageArray in storageArrays)
 			{
 				storageArray.Process();
 			}
