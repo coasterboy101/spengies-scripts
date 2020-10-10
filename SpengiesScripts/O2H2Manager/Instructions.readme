@@ -1,6 +1,6 @@
 ﻿Connector CustomData:
-[Gas Storage]
-groupName=*group*
+[Gas Storage Array]
+groupID=*group*
 fillPercent=*20*
 
 Tank CustomData:
