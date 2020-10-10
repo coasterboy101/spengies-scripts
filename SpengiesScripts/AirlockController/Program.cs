@@ -16,51 +16,57 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game;
 using VRage;
 using VRageMath;
+using Sandbox.Game.Screens.Helpers;
 
 namespace IngameScript
 {
 	partial class Program : MyGridProgram
 	{
-		#region mdk preserve
-		public void Configuration()
-		{
-			// Lignting color when doors are locked 
-			Config.LOCK_COLOR = new Color(1.0f, 0.0f, 0.0f);
-			// Lighting color when pressure is wrong but doors are unlocked 
-			Config.WARN_COLOR = new Color(1.0f, 0.5f, 0.0f);
-			// Lighting color when doors are open 
-			Config.OPEN_COLOR = new Color(0.0f, 1.0f, 0.0f);
+		private const string CONFIG_GROUP_SECTION_NAME = "Airlock";
+		private const string CONFIG_KEY_NAME_AIRLOCK_ID = "airlockID";
 
-			// Tags must be surrounded by square brackets, e.g. [AI] for Airlock Inner
-			// Group name must start with this to be considered by this script (case insensitive)
-			Config.GROUP_TAG = "A";
+		private const string CONTROL_GROUP_SECTION_NAME = "Airlock Control";
+		private const string A_GROUP_SECTION_NAME = "Airlock A";
+		private const string B_GROUP_SECTION_NAME = "Airlock B";
 
-			Config.INNER_TAG = "I";
-			Config.OUTER_TAG = "E";
-			Config.CONTROL_TAG = "C";
+		private RAPI api;
 
-			// Should we completely open the doors even if pressure is not ok?
-			Config.OPEN_ANYWAY = false;
-		}
-		#endregion
-
-		// Enable debug to antenna or LCD marked with [DEBUG] 
-		//public static bool EnableDebug = false;
+		private List<Airlock> airlocks;
 
 		public Program()
 		{
+			api = new RAPI(this);
 			Runtime.UpdateFrequency = UpdateFrequency.Update10;
+
+			airlocks = new List<Airlock>();
+
+			List<IMyControlPanel> panels = new List<IMyControlPanel>();
+			GridTerminalSystem.GetBlocksOfType(panels, panel => MyIni.HasSection(panel.CustomData, CONFIG_GROUP_SECTION_NAME));
+
+			foreach (IMyControlPanel panel in panels)
+			{
+				airlocks.Add(new Airlock(api, panel));
+			}
 		}
 
-		public void Main(string argument)
+		public void Main(string argument, UpdateType updateSource)
 		{
-			Configuration();
-
-			// Init MMAPI and debug panels marked with [DEBUG] 
-			DR.Init(GridTerminalSystem, EnableDebug, this);
-
-			AirlockControlProgram prog = new AirlockControlProgram();
-			prog.Run(argument);
+			if (!String.IsNullOrWhiteSpace(argument) && api.CommandLine.TryParse(argument))
+			{
+				string key = api.CommandLine.Argument(0).Trim();
+				
+				Airlock airlock = airlocks.Where(a => a.ID == key).FirstOrDefault();
+				if (airlock != null)
+				{
+					AirlockState targetState;
+					if (api.CommandLine.Switch("a"))
+						targetState = AirlockState.ASideOpen;
+					else if (api.CommandLine.Switch("b"))
+						targetState = AirlockState.BSideOpen;
+					else
+						targetState = airlock.CurrentState == AirlockState.ASideOpen ? AirlockState.BSideOpen : AirlockState.ASideOpen;
+				}
+			}
 		}
 	}
 }
