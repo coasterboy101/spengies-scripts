@@ -17,35 +17,36 @@ using VRage.Game;
 using VRage;
 using VRageMath;
 using Sandbox.Game.Screens.Helpers;
+using System.Runtime.InteropServices;
 
 namespace IngameScript
 {
 	partial class Program : MyGridProgram
 	{
-		private const string CONFIG_GROUP_SECTION_NAME = "Airlock";
-		private const string CONFIG_KEY_NAME_AIRLOCK_ID = "airlockID";
+		private const string ID_BLOCK_SECTION_NAME = "Airlock";
+		private const string ID_BLOCK_AIRLOCK_ID_SETTING_KEY = "id";
 
-		private const string CONTROL_GROUP_SECTION_NAME = "Airlock Control";
-		private const string A_GROUP_SECTION_NAME = "Airlock A";
-		private const string B_GROUP_SECTION_NAME = "Airlock B";
+		private const string CONTROL_GROUP_SECTION_NAME = "AirlockC";
+		private const string A_GROUP_SECTION_NAME = "AirlockA";
+		private const string B_GROUP_SECTION_NAME = "AirlockB";
 
-		private RAPI api;
+		private static RAPI api;
 
 		private List<Airlock> airlocks;
 
 		public Program()
 		{
-			api = new RAPI(this);
 			Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
+			api = new RAPI(this);
 			airlocks = new List<Airlock>();
 
-			List<IMyControlPanel> panels = new List<IMyControlPanel>();
-			GridTerminalSystem.GetBlocksOfType(panels, panel => MyIni.HasSection(panel.CustomData, CONFIG_GROUP_SECTION_NAME));
+			List<IMyButtonPanel> panels = new List<IMyButtonPanel>();
+			GridTerminalSystem.GetBlocksOfType(panels, p => MyIni.HasSection(p.CustomData, ID_BLOCK_SECTION_NAME));
 
-			foreach (IMyControlPanel panel in panels)
+			foreach (IMyButtonPanel panel in panels)
 			{
-				airlocks.Add(new Airlock(api, panel));
+				airlocks.Add(new Airlock(panel));
 			}
 		}
 
@@ -54,7 +55,7 @@ namespace IngameScript
 			if (!String.IsNullOrWhiteSpace(argument) && api.CommandLine.TryParse(argument))
 			{
 				string key = api.CommandLine.Argument(0).Trim();
-				
+
 				Airlock airlock = airlocks.Where(a => a.ID == key).FirstOrDefault();
 				if (airlock != null)
 				{
@@ -65,7 +66,14 @@ namespace IngameScript
 						targetState = AirlockState.BSideOpen;
 					else
 						targetState = airlock.CurrentState == AirlockState.ASideOpen ? AirlockState.BSideOpen : AirlockState.ASideOpen;
+
+					airlock.Cycle(targetState);
 				}
+			}
+
+			foreach (Airlock airlock in airlocks)
+			{
+				airlock.Process();
 			}
 		}
 	}

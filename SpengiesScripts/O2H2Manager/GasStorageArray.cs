@@ -29,20 +29,16 @@ namespace IngameScript
 			public IMyShipConnector Valve { get; private set; }
 			public List<IMyGasTank> Tanks { get; private set; }
 
-			private RAPI api;
-
-			public GasStorageArray(RAPI api, IMyShipConnector valve)
+			public GasStorageArray(IMyShipConnector valve)
 			{
-				this.api = api;
-
 				Valve = valve;
-				this.api.Ini.TryParse(Valve.CustomData);
+				api.Ini.TryParse(Valve.CustomData);
 
-				Key = this.api.Ini.Get(GROUP_SECTION_NAME, GROUP_ID_KEY).ToString();
-				TargetFill = this.api.Ini.Get(GROUP_SECTION_NAME, FILL_PERCENT_KEY).ToInt32();
+				Key = api.Ini.Get(GROUP_SECTION_NAME, GROUP_ID_KEY).ToString();
+				TargetFill = api.Ini.Get(GROUP_SECTION_NAME, FILL_PERCENT_KEY).ToInt32();
 
 				Tanks = new List<IMyGasTank>();
-				this.api.Program.GridTerminalSystem.GetBlocksOfType(Tanks, tank => MyIni.HasSection(tank.CustomData, Key));
+				api.Program.GridTerminalSystem.GetBlocksOfType(Tanks, tank => MyIni.HasSection(tank.CustomData, Key));
 			}
 
 			public void Process()

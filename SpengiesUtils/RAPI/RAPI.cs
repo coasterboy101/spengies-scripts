@@ -9,6 +9,7 @@ using System.Text;
 using System;
 using VRage.Collections;
 using VRage.Game.Components;
+using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
@@ -26,9 +27,9 @@ namespace IngameScript
 			public MyIni Ini { get; set; }
 			public Program Program { get; private set; }
 
-			private IMyTextSurface _progammingBlockLcd = null;
+			private static IMyTextSurface programmingBlockLcd = null;
 
-			private bool _debug = false;
+			private bool debug = false;
 
 			public RAPI(Program program, bool debug = false)
 			{
@@ -36,19 +37,23 @@ namespace IngameScript
 				Ini = new MyIni();
 				Program = program;
 
-				_debug = debug;
+				this.debug = debug;
 
 				if (Program.Me.SurfaceCount > 0)
-					_progammingBlockLcd = Program.Me.GetSurface(0);
+				{
+					programmingBlockLcd = Program.Me.GetSurface(0);
+					programmingBlockLcd.ContentType = ContentType.TEXT_AND_IMAGE;
+					programmingBlockLcd.WriteText(String.Empty);
+				}
 			}
 
 			public void Debug(string message, bool append = true)
 			{
-				if (!_debug)
+				if (!debug)
 					return;
 
-				if (_progammingBlockLcd != null)
-					_progammingBlockLcd.WriteText(message, append);
+				if (programmingBlockLcd != null)
+					programmingBlockLcd.WriteText($"{message}\n", append);
 
 				Program.Echo(message);
 			}

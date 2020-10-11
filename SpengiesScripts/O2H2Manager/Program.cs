@@ -25,7 +25,7 @@ namespace IngameScript
 		private const string GROUP_ID_KEY = "groupID";
 		private const string FILL_PERCENT_KEY = "fillPercent";
 
-		private RAPI api;
+		private static RAPI api;
 
 		private List<GasStorageArray> storageArrays;
 
@@ -41,7 +41,7 @@ namespace IngameScript
 
 			foreach (IMyShipConnector valve in valves)
 			{
-				storageArrays.Add(new GasStorageArray(api, valve));
+				storageArrays.Add(new GasStorageArray(valve));
 			}
 		}
 
