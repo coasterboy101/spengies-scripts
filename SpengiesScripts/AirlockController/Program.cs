@@ -38,7 +38,7 @@ namespace IngameScript
 		{
 			Runtime.UpdateFrequency = UpdateFrequency.Update10;
 
-			api = new RAPI(this);
+			api = new RAPI(this, false);
 			airlocks = new List<Airlock>();
 
 			List<IMyButtonPanel> panels = new List<IMyButtonPanel>();
@@ -52,6 +52,7 @@ namespace IngameScript
 
 		public void Main(string argument, UpdateType updateSource)
 		{
+			api.Debug(Runtime.LastRunTimeMs.ToString("n2"));
 			if (!String.IsNullOrWhiteSpace(argument) && api.CommandLine.TryParse(argument))
 			{
 				string key = api.CommandLine.Argument(0).Trim();

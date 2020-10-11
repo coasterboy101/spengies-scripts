@@ -39,8 +39,11 @@ namespace IngameScript
 
 		public class Airlock
 		{
-			private const int STEP_WAIT_TIME_IN_UPDATES = 6;
-			private const int MAX_VENT_TIME_IN_UPDATES = 180;
+			private const int STEP_WAIT_TIME_IN_MS = 1000;
+			private const int MAX_VENT_TIME_IN_MS = 30000;
+
+			private const string AIRLOCK_READY_TEXT = "READY";
+			private const string AIRLOCK_CYCLE_TEXT = "CYCLING";
 
 			public string ID { get; private set; }
 
@@ -48,12 +51,12 @@ namespace IngameScript
 			public AirlockState CurrentState { get; private set; }
 			public AirlockState TargetState { get; private set; }
 
-			private int stepUpdateCount = 0;
-			private int ventUpdateCount = 0;
+			private int stepMillesecondsCount = 0;
+			private int ventMillisecondsCount = 0;
 
 			private List<IMyAirVent> vents = new List<IMyAirVent>();
 			private List<IMyLightingBlock> lights = new List<IMyLightingBlock>();
-			private List<IMyTextPanel> lcds = new List<IMyTextPanel>();
+			private List<IMyTextSurface> lcds = new List<IMyTextSurface>();
 
 			private IMyAirVent aSideVent = null;
 			private List<IMyDoor> aSideDoors = new List<IMyDoor>();
@@ -68,9 +71,11 @@ namespace IngameScript
 			public Airlock(IMyButtonPanel panel)
 			{
 				api.Ini.TryParse(panel.CustomData);
-				
+
 				ID = api.Ini.Get(ID_BLOCK_SECTION_NAME, ID_BLOCK_AIRLOCK_ID_SETTING_KEY).ToString();
-				api.Debug(ID);
+				IMyTextSurfaceProvider panelLcd = panel as IMyTextSurfaceProvider;
+				if (panelLcd != null && panelLcd.SurfaceCount > 0)
+					lcds.Add(panelLcd.GetSurface(0));
 
 				List<IMyAirVent> allVents = new List<IMyAirVent>();
 				api.Program.GridTerminalSystem.GetBlocksOfType(allVents, v => MyIni.HasSection(v.CustomData, ID));
@@ -78,8 +83,26 @@ namespace IngameScript
 				vents = allVents.Where(v => MyIni.HasSection(v.CustomData, CONTROL_GROUP_SECTION_NAME)).ToList();
 				api.Program.GridTerminalSystem.GetBlocksOfType(lights,
 					l => MyIni.HasSection(l.CustomData, ID) && MyIni.HasSection(l.CustomData, CONTROL_GROUP_SECTION_NAME));
-				api.Program.GridTerminalSystem.GetBlocksOfType(lcds,
+
+				List<IMyTerminalBlock> screens = new List<IMyTerminalBlock>();
+				api.Program.GridTerminalSystem.GetBlocksOfType(screens,
 					l => MyIni.HasSection(l.CustomData, ID) && MyIni.HasSection(l.CustomData, CONTROL_GROUP_SECTION_NAME));
+				foreach (IMyTerminalBlock screen in screens)
+				{
+					IMyTextSurface screenPanel = screen as IMyTextSurface;
+					if (screenPanel != null)
+					{
+						lcds.Add(screenPanel);
+						continue;
+					}
+
+					IMyTextSurfaceProvider screenProvider = screen as IMyTextSurfaceProvider;
+					if (screenProvider != null && screenProvider.SurfaceCount > 0)
+					{
+						lcds.Add(screenProvider.GetSurface(0));
+						continue;
+					}
+				}
 
 				aSideVent = allVents.Where(v => MyIni.HasSection(v.CustomData, A_GROUP_SECTION_NAME)).FirstOrDefault();
 				api.Program.GridTerminalSystem.GetBlocksOfType(aSideDoors,
@@ -105,7 +128,13 @@ namespace IngameScript
 				Status = AirlockStatus.DoorsClosing;
 
 				activeDoors = null;
-				stepUpdateCount = 0;
+				stepMillesecondsCount = 0;
+
+				foreach (IMyTextSurface lcd in lcds)
+				{
+					if (lcd != null)
+						lcd.WriteText(AIRLOCK_CYCLE_TEXT);
+				}
 			}
 
 			public void Process()
@@ -121,13 +150,13 @@ namespace IngameScript
 
 						if (Close(activeDoors))
 						{
-							stepUpdateCount++;
-							if (stepUpdateCount < STEP_WAIT_TIME_IN_UPDATES)
+							stepMillesecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
+							if (stepMillesecondsCount < STEP_WAIT_TIME_IN_MS)
 								return;
 
 							activeDoors = null;
-							stepUpdateCount = 0;
-							ventUpdateCount = 0;
+							stepMillesecondsCount = 0;
+							ventMillisecondsCount = 0;
 
 							switch (TargetState)
 							{
@@ -149,11 +178,11 @@ namespace IngameScript
 					case AirlockStatus.Pressurizing:
 						if (Pressurize(vents))
 						{
-							stepUpdateCount++;
-							if (stepUpdateCount < STEP_WAIT_TIME_IN_UPDATES)
+							stepMillesecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
+							if (stepMillesecondsCount < STEP_WAIT_TIME_IN_MS)
 								return;
-							else
-								stepUpdateCount = 0;
+							
+							stepMillesecondsCount = 0;
 
 							Status = AirlockStatus.DoorsOpening;
 						}
@@ -161,11 +190,11 @@ namespace IngameScript
 					case AirlockStatus.Depressurizing:
 						if (Depressurize(vents))
 						{
-							stepUpdateCount++;
-							if (stepUpdateCount < STEP_WAIT_TIME_IN_UPDATES)
+							stepMillesecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
+							if (stepMillesecondsCount < STEP_WAIT_TIME_IN_MS)
 								return;
-							else
-								stepUpdateCount = 0;
+							
+							stepMillesecondsCount = 0;
 
 							Status = AirlockStatus.DoorsOpening;
 						}
@@ -187,12 +216,18 @@ namespace IngameScript
 
 						if (Open(activeDoors))
 						{
-							stepUpdateCount++;
-							if (stepUpdateCount < STEP_WAIT_TIME_IN_UPDATES)
+							stepMillesecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
+							if (stepMillesecondsCount < STEP_WAIT_TIME_IN_MS)
 								return;
 
 							Status = AirlockStatus.Standby;
 							CurrentState = TargetState;
+
+							foreach (IMyTextSurface lcd in lcds)
+							{
+								if (lcd != null)
+									lcd.WriteText(AIRLOCK_READY_TEXT);
+							}
 						}
 						break;
 				}
@@ -249,7 +284,7 @@ namespace IngameScript
 
 			private bool Pressurize(List<IMyAirVent> vents)
 			{
-				bool pressurized = ventUpdateCount >= MAX_VENT_TIME_IN_UPDATES || vents.Average(v => v.GetOxygenLevel()) >= 1.00f;
+				bool pressurized = ventMillisecondsCount >= MAX_VENT_TIME_IN_MS || vents.Min(v => v.GetOxygenLevel()) >= 1.00f;
 				foreach (IMyAirVent vent in vents)
 				{
 					if (vent == null || pressurized)
@@ -261,13 +296,13 @@ namespace IngameScript
 						vent.Depressurize = false;
 				}
 
-				ventUpdateCount++;
+				ventMillisecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
 				return pressurized;
 			}
 
 			private bool Depressurize(List<IMyAirVent> vents)
 			{
-				bool depressurized = ventUpdateCount >= MAX_VENT_TIME_IN_UPDATES || vents.Average(v => v.GetOxygenLevel()) <= 0.00f;
+				bool depressurized = ventMillisecondsCount >= MAX_VENT_TIME_IN_MS || vents.Max(v => v.GetOxygenLevel()) <= 0.00f;
 				foreach (IMyAirVent vent in vents)
 				{
 					if (vent == null)
@@ -289,7 +324,7 @@ namespace IngameScript
 						vent.Depressurize = true;
 				}
 
-				ventUpdateCount++;
+				ventMillisecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
 				return depressurized;
 			}
 		}
