@@ -121,8 +121,13 @@ namespace IngameScript
 
 			public void Cycle(AirlockState targetState)
 			{
-				if (Status != AirlockStatus.Standby || targetState == CurrentState)
+				if (Status != AirlockStatus.Standby)
 					return;
+
+				if (targetState == CurrentState)
+				{
+
+				}
 
 				TargetState = targetState;
 				Status = AirlockStatus.DoorsClosing;
@@ -153,6 +158,12 @@ namespace IngameScript
 							stepMillesecondsCount += api.Program.Runtime.TimeSinceLastRun.Milliseconds;
 							if (stepMillesecondsCount < STEP_WAIT_TIME_IN_MS)
 								return;
+
+							foreach (IMyDoor door in activeDoors)
+							{
+								if (door != null && door.Enabled)
+									door.Enabled = false;
+							}
 
 							activeDoors = null;
 							stepMillesecondsCount = 0;
@@ -239,11 +250,7 @@ namespace IngameScript
 				foreach (IMyDoor door in doors)
 				{
 					if (door.Status == DoorStatus.Open)
-					{
-						if (door.Enabled)
-							door.Enabled = false;
 						continue;
-					}
 
 					if (!door.Enabled)
 						door.Enabled = true;
@@ -265,11 +272,7 @@ namespace IngameScript
 						continue;
 
 					if (door.Status == DoorStatus.Closed)
-					{
-						if (door.Enabled)
-							door.Enabled = false;
 						continue;
-					}
 
 					if (!door.Enabled)
 						door.Enabled = true;
